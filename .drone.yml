@@ -62,7 +62,7 @@ steps:
   image: docker:19.03.12-dind
   commands:
   - docker login -u="drone-acp-multipage-example-app" -p=$${ARTIFACTORY_PASSWORD} docker.digital.homeoffice.gov.uk
-  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} tag acp-multipage-example-app:$${DRONE_TAG}
+  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_TAG}
   - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_TAG}
   environment:
     ARTIFACTORY_PASSWORD:
