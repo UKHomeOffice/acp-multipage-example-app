@@ -1,78 +1,19 @@
 ---
 kind: pipeline
-name: default
 type: kubernetes
+name: default
 
 platform:
   os: linux
   arch: amd64
 
 steps:
-- name: build
-  pull: if-not-exists
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-  commands:
-  # wait for docker service to be up before running docker build
-  - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
-  - docker build -t  acp-multipage-example-app:$${DRONE_COMMIT_SHA} . --no-cache
-  when:
-    event:
-    - push
-    - tag
-
-- name: scan-image
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
+- name: Blob
   pull: always
-  environment:
-    IMAGE_NAME:  acp-multipage-example-app:${DRONE_COMMIT_SHA}
-    WHITELIST: CVE-2008-4318,CVE-2020-25613,CVE-2021-28965,CVE-2021-3517
+  image: alpine:3.23.4
+  commands:
+  - echo "blob"
   when:
     event:
     - push
-    - tag
-
-- name: push_artifactory_latest
-  pull: if-not-exists
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-  commands:
-  - docker login -u=$${ARTIFACTORY_USERNAME} -p=$${ARTIFACTORY_PASSWORD} docker.digital.homeoffice.gov.uk
-  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
-  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_COMMIT_SHA}
-  - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
-  - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_COMMIT_SHA}
-  environment:
-    ARTIFACTORY_PASSWORD:
-      from_secret: artifactory_password
-    ARTIFACTORY_USERNAME:
-      from_secret: artifactory_username
-  when:
-    branch:
-    - master
-    event:
-    - push
-
-- name: push_artifactory_tag
-  pull: if-not-exists
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-  commands:
-  - docker login -u=$${ARTIFACTORY_USERNAME} -p=$${ARTIFACTORY_PASSWORD} docker.digital.homeoffice.gov.uk
-  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_TAG}
-  - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_TAG}
-  environment:
-    ARTIFACTORY_PASSWORD:
-      from_secret: artifactory_password
-    ARTIFACTORY_USERNAME:
-      from_secret: artifactory_username
-  when:
-    event:
-    - tag
-
-services:
-- name: docker
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-
-- name: anchore-submission-server
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
-  pull: always
-  commands:
-    - /run.sh server
+    - pull_request`
