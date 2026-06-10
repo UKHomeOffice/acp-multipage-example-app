@@ -14,10 +14,11 @@ steps:
   commands:
   # wait for docker service to be up before running docker build
   - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
-  - docker build -t  acp-multipage-example-app:$${DRONE_COMMIT_SHA} . --no-cache
+  - docker build -t  acp-multipage-example-app:${DRONE_COMMIT_SHA} . --no-cache
   when:
     event:
     - push
+    - pull_request
     - tag
 
 - name: scan-image
@@ -29,35 +30,50 @@ steps:
   when:
     event:
     - push
+    - pull_request
+
+
+- name: push_to_ecr
+  image: plugins/ecr
+  pull: if-not-exists
+  settings:
+    registry: 340268328991.dkr.ecr.eu-west-2.amazonaws.com
+    repo: acp/multipage-example-app
+    tags:
+    - "${DRONE_TAG}"  
+  environment:
+    AWS_ACCESS_KEY_ID:
+      from_secret: aws_access_key_id
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: aws_secret_access_key
+    AWS_REGION: eu-west-2
+  when:
+    event: 
     - tag
 
 - name: push_artifactory_latest
   pull: if-not-exists
   image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
   commands:
-  - docker login -u=$${ARTIFACTORY_USERNAME} -p=$${ARTIFACTORY_PASSWORD} docker.digital.homeoffice.gov.uk
-  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
-  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_COMMIT_SHA}
+  - docker login -u=$ARTIFACTORY_USERNAME -p=$ARTIFACTORY_PASSWORD docker.digital.homeoffice.gov.uk
+  - docker tag acp-multipage-example-app:${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
   - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
-  - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_COMMIT_SHA}
   environment:
     ARTIFACTORY_PASSWORD:
       from_secret: artifactory_password
     ARTIFACTORY_USERNAME:
       from_secret: artifactory_username
   when:
-    branch:
-    - master
     event:
-    - push
+    - tag
 
 - name: push_artifactory_tag
   pull: if-not-exists
   image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
   commands:
-  - docker login -u=$${ARTIFACTORY_USERNAME} -p=$${ARTIFACTORY_PASSWORD} docker.digital.homeoffice.gov.uk
-  - docker tag acp-multipage-example-app:$${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_TAG}
-  - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:$${DRONE_TAG}
+  - docker login -u=$ARTIFACTORY_USERNAME -p=$ARTIFACTORY_PASSWORD docker.digital.homeoffice.gov.uk
+  - docker tag acp-multipage-example-app:${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:${DRONE_TAG}
+  - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:${DRONE_TAG}
   environment:
     ARTIFACTORY_PASSWORD:
       from_secret: artifactory_password
