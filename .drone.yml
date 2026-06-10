@@ -14,7 +14,7 @@ steps:
   commands:
   # wait for docker service to be up before running docker build
   - n=0; while [ "$n" -lt 60 ] && [ ! docker stats --no-stream ]; do n=$(( n + 1 )); sleep 1; done
-  - docker build -t  acp-multipage-example-app:${DRONE_COMMIT_SHA} . --no-cache
+  - docker build -t  "acp-multipage-example-app:${DRONE_COMMIT_SHA}" . --no-cache
   when:
     event:
     - push
@@ -56,7 +56,7 @@ steps:
   image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
   commands:
   - docker login -u=$ARTIFACTORY_USERNAME -p=$ARTIFACTORY_PASSWORD docker.digital.homeoffice.gov.uk
-  - docker tag acp-multipage-example-app:${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
+  - docker tag "acp-multipage-example-app:${DRONE_COMMIT_SHA}" docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
   - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:latest
   environment:
     ARTIFACTORY_PASSWORD:
@@ -72,7 +72,7 @@ steps:
   image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
   commands:
   - docker login -u=$ARTIFACTORY_USERNAME -p=$ARTIFACTORY_PASSWORD docker.digital.homeoffice.gov.uk
-  - docker tag acp-multipage-example-app:${DRONE_COMMIT_SHA} docker.digital.homeoffice.gov.uk/acp-multipage-example-app:${DRONE_TAG}
+  - docker tag "acp-multipage-example-app:${DRONE_COMMIT_SHA}" docker.digital.homeoffice.gov.uk/acp-multipage-example-app:${DRONE_TAG}
   - docker push docker.digital.homeoffice.gov.uk/acp-multipage-example-app:${DRONE_TAG}
   environment:
     ARTIFACTORY_PASSWORD:
