@@ -1,4 +1,4 @@
-FROM nginx:1.19.10-alpine
+FROM nginx:1.30.2-alpine
 
 RUN apk upgrade --no-cache
 
@@ -17,3 +17,4 @@ RUN touch /var/run/nginx.pid && \
 USER 1000
 
 EXPOSE 3000
+`
