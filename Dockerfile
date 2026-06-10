@@ -17,4 +17,3 @@ RUN touch /var/run/nginx.pid && \
 USER 1000
 
 EXPOSE 3000
-`
