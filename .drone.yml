@@ -21,16 +21,21 @@ steps:
     - pull_request
     - tag
 
-- name: scan-image
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
-  pull: always
+- name: trivy_sast
+  pull: Always
+  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/trivy/client:latest
+  resources:
+    limits:
+      cpu: 1000
+      memory: 1024Mi
   environment:
-    IMAGE_NAME:  acp-multipage-example-app:${DRONE_COMMIT_SHA}
-    WHITELIST: CVE-2008-4318,CVE-2020-25613,CVE-2021-28965,CVE-2021-3517
+    IMAGE_NAME: acp-opensearch-alias-exporter:latest
+    IGNORE_UNFIXED: "true"
+    FAIL_ON_DETECTION: "true"
   when:
-    event:
-    - push
+    event:    
     - pull_request
+    - push
 
 - name: push_to_ecr
   image: plugins/ecr
@@ -89,9 +94,3 @@ steps:
 services:
 - name: docker
   image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/dind
-
-- name: anchore-submission-server
-  image: 340268328991.dkr.ecr.eu-west-2.amazonaws.com/acp/anchore-submission:latest
-  pull: always
-  commands:
-    - /run.sh server
