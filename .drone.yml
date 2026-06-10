@@ -18,6 +18,7 @@ steps:
   when:
     event:
     - push
+    - pull_request
     - tag
 
 - name: scan-image
@@ -29,6 +30,24 @@ steps:
   when:
     event:
     - push
+    - pull_request
+
+- name: push_to_ecr
+  image: plugins/ecr
+  pull: if-not-exists
+  settings:
+    registry: 340268328991.dkr.ecr.eu-west-2.amazonaws.com
+    repo: acp/multipage-example-app
+    tags:
+    - "${DRONE_TAG}"  
+  environment:
+    AWS_ACCESS_KEY_ID:
+      from_secret: aws_access_key_id
+    AWS_SECRET_ACCESS_KEY:
+      from_secret: aws_secret_access_key
+    AWS_REGION: eu-west-2
+  when:
+    event: 
     - tag
 
 - name: push_artifactory_latest
